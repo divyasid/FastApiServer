@@ -15,6 +15,7 @@ def get_db():
     finally:
         db.close()
 
+# CREATE BLOG
 @app.post('/blog', status_code=status.HTTP_201_CREATED)
 def create(request: schemas.Blog, db: Session = Depends(get_db)):
     new_blog = models.Blog(title=request.title, body=request.body)
@@ -24,12 +25,35 @@ def create(request: schemas.Blog, db: Session = Depends(get_db)):
 
     return new_blog
 
+# DELETE A SPECIFIC BLOG
+@app.delete('/blog/{id}', status_code = status.HTTP_204_NO_CONTENT)
+def destroy(id,db: Session = Depends(get_db)):
+    db.query(models.Blog).filter(models.Blog.id == id).delete(synchronize_session=False)
+    db.commit()
+    return 'done'
 
+# UPDATE A BLOG
+@app.put('/blog/{id}',status_code=status.HTTP_202_ACCEPTED)
+def update(id, request: dict, db: Session = Depends(get_db)):
+    # print(type(request))
+    # print('yolo')
+    # d = {}
+    # for i,j in request:
+    #     print(i,j)
+    #     d[i] = j
+    db.query(models.Blog).filter(models.Blog.id == 
+        id).update(request)
+    db.commit()
+    return 'updated'
+
+
+# GET ALL BLOGS
 @app.get('/blog')
 def all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return blogs
 
+# GET SPECIFIC BLOG
 @app.get('/blog/{id}',status_code=200)
 def show(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
